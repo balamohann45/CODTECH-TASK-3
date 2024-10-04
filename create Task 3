@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        /* CSS styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #weather-dashboard {
+            width: 90%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        #current-weather, #forecast {
+            margin-top: 20px;
+        }
+
+        .forecast-item {
+            display: inline-block;
+            width: 100px;
+            margin: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="weather-dashboard">
+        <h1>Weather Dashboard</h1>
+        <input type="text" id="city-input" placeholder="Enter city name">
+        <button onclick="getWeather()">Get Weather</button>
+        <div id="current-weather"></div>
+        <div id="forecast"></div>
+    </div>
+
+    <script>
+        const apiKey = 'YOUR_API_KEY'; // Replace with your OpenWeatherMap API key
+
+        // Function to get current weather
+        function getWeather() {
+            const city = document.getElementById('city-input').value;
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.cod === 200) {
+                        displayWeather(data);
+                        getForecast(city);
+                    } else {
+                        alert('City not found');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Display current weather data
+        function displayWeather(data) {
+            const currentWeather = document.getElementById('current-weather');
+            currentWeather.innerHTML = `
+                <h2>Current Weather in ${data.name}</h2>
+                <p>Temperature: ${data.main.temp} °C</p>
+                <p>Humidity: ${data.main.humidity}%</p>
+                <p>Conditions: ${data.weather[0].description}</p>
+                <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="Weather Icon">
+            `;
+        }
+
+        // Function to get 5-day forecast
+        function getForecast(city) {
+            fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`)
+                .then(response => response.json())
+                .then(data => displayForecast(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Display 5-day forecast data
+        function displayForecast(data) {
+            const forecast = document.getElementById('forecast');
+            forecast.innerHTML = '<h3>5-Day Forecast</h3>';
+            data.list.forEach((item, index) => {
+                // Display forecast at 12:00 each day
+                if (item.dt_txt.includes("12:00:00")) {
+                    forecast.innerHTML += `
+                        <div class="forecast-item">
+                            <p>${new Date(item.dt * 1000).toLocaleDateString()}</p>
+                            <p>Temp: ${item.main.temp} °C</p>
+                            <p>${item.weather[0].description}</p>
+                            <img src="https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png" alt="Weather Icon">
+                        </div>
+                    `;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
